@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 3001; // default port 8080
 
 app.set("view engine", "ejs");
 
@@ -52,15 +52,19 @@ app.get("urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
-  console.log(urlDatabase);
-  res.redirect(`/urls/${shortURL}`);
-  res.send("Ok");         
+  //console.log(urlDatabase);
+  res.redirect(`/urls/${shortURL}`)
 });
 
 function generateRandomString() {
   return Math.random().toString(36).substr(2, 6);
 };
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
