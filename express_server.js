@@ -51,3 +51,8 @@ app.post("/urls", (req, res) => {
   res.send("Ok");         
 });
 
+function generateRandomString() {
+  return Math.random().toString(36).substr(2, 6);
+}
+
+generateRandomString();
