@@ -12,12 +12,21 @@
     </div>
    
     <div class="form">
-      <form class="form-inline justify-content-right" action="/login" method="POST">
-        <div class="form-group">
-          <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 0.75em">           
-          <button type="submit" class="btn btn-outline-dark">Login</button>
-        </div>
-      </form>
+      <% if (username) { %>
+        <form class="form-inline justify-content-right" action="/logout" method="POST">
+          <div class="form-group">
+            <label style="margin: 0.75em">Logged in as: <%= username %>!</label>         
+            <button type="submit" class="btn btn-outline-dark">Logout</button>
+          </div>
+        </form>
+        <% } else { %>
+          <form class="form-inline justify-content-right" action="/login" method="POST">
+            <div class="form-group">
+              <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 0.75em">           
+              <button type="submit" class="btn btn-outline-dark">Login</button>
+            </div>
+          </form>
+        <% } %>
     </div>
     
   </nav>
