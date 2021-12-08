@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -66,6 +68,18 @@ function generateRandomString() {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  res.cookie("username", username, {
+    maxAge: 60000,
+    expires: new Date(Date.now() + 600000),
+    secure: true,
+    httpOnly: false,
+    sameSite: 'lax'
+  });
   res.redirect("/urls");
 });
 
