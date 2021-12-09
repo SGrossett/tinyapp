@@ -25,6 +25,11 @@ const users = {
     id: "user2RandomID", 
     email: "user2@example.com",
     password: "dishwasher-funk"
+  },
+  "ez123": {
+    id: "ez123",
+    email: "ez@example.com",
+    password: "123hackme"
   }
 };
 
@@ -38,7 +43,7 @@ app.get("/urls", (req, res) => {
   const user = users[user_id];
 
   const templateVars = { urls: urlDatabase, user: user };
-  console.log("user:", templateVars.user)
+  console.log("user:", user)
   res.render("urls_index", templateVars);
 });
 
@@ -115,6 +120,13 @@ app.post("/register", (req, res) => {
   const newEmail = req.body.email;
   const newPassword = req.body.password;
 
+  if (!newEmail || !newPassword) {
+    res.statusCode = 400;
+    res.send("Error: 400 - Bad Request. Cannot find email or password")
+  } else if (getUserByEmail(newEmail, users)) {
+    res.statusCode = 400;
+    res.send("Error: 400 - Bad Request. User already exists.")
+  }
   user_id = generateRandomString();
 
   users[user_id] = { 
@@ -141,6 +153,10 @@ app.get("/urls.json", (req, res) => {
 });
 
 
-generateRandomString = () => {
+const generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
+
+const getUserByEmail = (email, database) => {
+  return Object.values(database).find(user => user.email === email);
+}
