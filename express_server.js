@@ -15,14 +15,14 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
-    id: "user2RandomID", 
+    id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
   },
@@ -33,7 +33,7 @@ const users = {
   }
 };
 
-// ROUTE ENDPOINTS 
+// ROUTE ENDPOINTS
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -52,17 +52,17 @@ app.get("/urls", (req, res) => {
   const user = users[user_id];
 
   const templateVars = { urls: urlDatabase, user: user };
-  console.log("user:", user)
+  console.log("user:", user);
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const user_id = req.cookies.user_id;
 
-  const templateVars = { 
+  const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user: users[user_id] 
+    user: users[user_id]
   };
   res.render("urls_show", templateVars);
 });
@@ -73,7 +73,7 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   //console.log(urlDatabase);
-  res.redirect(`/urls/${shortURL}`)
+  res.redirect(`/urls/${shortURL}`);
 });
 
 
@@ -103,21 +103,21 @@ app.post("/register", (req, res) => {
 
   if (!newEmail || !newPassword) {
     res.statusCode = 400;
-    res.send("Error: 400 - Bad Request. Cannot find email or password")
+    res.send("Error: 400 - Bad Request. Cannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
     res.statusCode = 400;
-    res.send("Error: 400 - Bad Request. User already exists.")
+    res.send("Error: 400 - Bad Request. User already exists.");
   }
   user_id = generateRandomString();
 
-  users[user_id] = { 
+  users[user_id] = {
     id: user_id,
     email: newEmail,
     password: newPassword
-  }
+  };
   
   res.cookie("user_id", user_id);
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 // LOGIN ENDPOINTS
@@ -126,7 +126,6 @@ app.get("/login", (req, res) => {
   const templateVars = { user: users[user_id] };
 
   res.render("login", templateVars);
-  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
@@ -137,7 +136,7 @@ app.post("/login", (req, res) => {
     res.statusCode = 400;
     res.send("Error: 400 - Bad Request. Cannot find email or password");
     return;
-  } 
+  }
   res.cookie("user_id", user.id, {
     maxAge: 60000,
     expires: new Date(Date.now() + 600000),
@@ -171,4 +170,4 @@ const generateRandomString = () => {
 
 const getUserByEmail = (email, database) => {
   return Object.values(database).find(user => user.email === email);
-}
+};
