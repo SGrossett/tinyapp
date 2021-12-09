@@ -3,7 +3,7 @@ const app = express();
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
-const PORT = 8080; // default port 8080
+const PORT = 8080; // default port 8080˜
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -23,7 +23,7 @@ const users = {
   },
  "user2RandomID": {
     id: "user2RandomID", 
-    email: "user2@example.com", 
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 };
@@ -35,7 +35,9 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
-  const templateVars = { urls: urlDatabase, user: users[user_id] };
+  const user = users[user_id];
+
+  const templateVars = { urls: urlDatabase, user: user };
   console.log("user:", templateVars.user)
   res.render("urls_index", templateVars);
 });
@@ -47,10 +49,12 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const user_id = req.cookies.user_id;
+
   const templateVars = { 
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL],
-    user_id: req.cookies.user_id 
+    user: users[user_id] 
   };
   res.render("urls_show", templateVars);
 });
@@ -140,4 +144,3 @@ app.get("/urls.json", (req, res) => {
 generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
-
