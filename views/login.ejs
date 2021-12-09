@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Tinyapp</title>
+  
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  
+    <!-- <link rel="stylesheet" type="text/css" href="css/registration.css"> -->
+    
+
+    <style>
+      body { background-color: #7788A0; }
+      .card-container { background: #f2f2f2; margin: 200px auto;  max-width: 500px; padding: 40px; box-shadow: 10px 12px 4px rgba(0, 0, 0, 0.3); }
+      #profile-img { display: block; margin: 20px auto 40px; border-radius: 15%; height: 150px; width: 150px; }
+      .registration .form-control { margin: 12px auto; }
+      h2 { font-size: 3rem; }
+      .btn { width: 100%; cursor: pointer;  margin: 0px auto 35px; }
+      h2:before, h2:after { content: ""; height: 3px; width: 30%; background: #d4d4d4; position: absolute; top: 13%; z-index: 2; }
+      h2:before { left: 0; }
+      h2:after { right: 0; }
+    </style>
+    
+   
+  </head>
+
+  <body>
+
+    <div class="card card-container">
+      <h2 class="text-center">Login</h2>
+        <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="blank-profile-pic" id="profile-img"/>
+
+        <form action="/register" method="POST" class="registration">
+            <input class="form-control" name="email" type="email" placeholder="Email address" required autofocus>
+            <input class="form-control" name="password" type="password" placeholder="Password" required>
+            <button class="btn btn-lg btn-success" type="submit">Login</button>
+        </form>
+
+        <p class="link-change text-center">
+          Not a member?
+          <a href="#" method="GET" action="/login" class="login-link">Create Account</a>
+        </p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
