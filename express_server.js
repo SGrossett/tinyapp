@@ -39,20 +39,36 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies.user_id;
-  const templateVars = { user: users[user_id] };
-  res.render("urls_new", templateVars);
+// /URLS ENDPONTS
+app.post("/urls", (req, res) => {
+  const user_id = res.cookies.user_id;
+
+  if (user_id) {
+    const shortURL = generateRandomString();
+    const longURL = req.body.longURL;
+    urlDatabase[shortURL] = longURL;
+    res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs.")
+  }
 });
 
-
-// /URLS ENDPONTS
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const user = users[user_id];
 
   const templateVars = { urls: urlDatabase, user: user };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/new", (req, res) => {
+  const user_id = req.cookies.user_id;
+  if (!user_id) {
+    res.redirect("/login");
+    return;
+  }
+  const templateVars = { user: users[user_id] };
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -65,15 +81,6 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-
-app.post("/urls", (req, res) => {
-  //console.log(req.body);
-  const shortURL = generateRandomString();
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
-
 
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
@@ -100,12 +107,11 @@ app.post("/register", (req, res) => {
   const newPassword = req.body.password;
 
   if (!newEmail || !newPassword) {
-    res.statusCode = 400;
-    res.send("Error: 400 - Bad Request \nCannot find email or password");
+    res.status(400).send("Error: 400 - Bad Request \nCannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
-    res.statusCode = 400;
-    res.send("Error: 400 - Bad Request. User already exists.");
+    res.status(400).send("Error: 400 - Bad Request. User already exists.");
   }
+
   user_id = generateRandomString();
 
   users[user_id] = {
@@ -131,12 +137,10 @@ app.post("/login", (req, res) => {
   const user = getUserByEmail(email, users);
 
   if (!email) {
-    res.statusCode = 403;
-    res.send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nEmail not found.");
+    res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nEmail not found.");
   } else {
     if (user.password !== password) {
-      res.statusCode = 403;
-      res.send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
+      res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
     } else {
       res.cookie("user_id", user.id, {
         maxAge: 60000,
