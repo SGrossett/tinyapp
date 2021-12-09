@@ -16,29 +16,20 @@
         <form class="form-inline justify-content-right" action="/logout" method="POST">
           <div class="form-group">
             <label style="margin: 0.75em">Logged in as: <%= user.email %>!</label>         
-            <button type="submit" class="btn btn-outline-dark">Logout</button>
+            <button type="submit" class="btn" style="color: #fff; font-size: 1.2rem">Logout</button>
           </div>
         </form>
         <% } else { %>
-          <form class="form-inline justify-content-right">
-            <div class="form-group" action="/login" method="POST">
+          <div class="form-inline justify-content-right">
+            <a href="/login">
               <button type="submit" class="btn" style="color: #fff; font-size: 1.2rem">Login</button>
-            </div>
-            <div class="form-group" action="/register" method="POST">
+            </a>
+            <a href="/register">
               <button type="submit" class="btn" style="color: #fff; font-size: 1.2rem">Register</button>
-            </div>
-          </form>
+            </a>
+          </div>
         <% } %>
     </div>
     
   </nav>
 </header>
-
-<form class="form-inline justify-content-right">
-  <div class="form-group" action="/login" method="POST">
-    <button type="submit" class="btn" style="color: #fff">Login</button>
-  </div>
-  <div class="form-group" action="/register" method="POST">
-    <button type="submit" class="btn" style="color: #fff">Register</button>
-  </div>
-</form>
