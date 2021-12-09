@@ -34,10 +34,19 @@ const users = {
 };
 
 // ROUTE ENDPOINTS 
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.get("/urls/new", (req, res) => {
+  const user_id = req.cookies.user_id;
+  const templateVars = { user: users[user_id] };
+  res.render("urls_new", templateVars);
+});
+
+
+// /URLS ENDPONTS
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const user = users[user_id];
@@ -45,12 +54,6 @@ app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: user };
   console.log("user:", user)
   res.render("urls_index", templateVars);
-});
-
-app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies.user_id;
-  const templateVars = { user: users[user_id] };
-  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -64,11 +67,6 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
-
 app.post("/urls", (req, res) => {
   //console.log(req.body);
   const shortURL = generateRandomString();
@@ -79,8 +77,11 @@ app.post("/urls", (req, res) => {
 });
 
 
-//app.post("/urls/ids")
-
+// /U ENDPOINT
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
@@ -88,32 +89,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 
-//app.get("/login")
-app.get("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
-  const templateVars = { user: users[user_id] };
-  res.render("login", templateVars);
-});
-
-
+// REGISTER ENDPOINTS
 app.get("/register", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { user: users[user_id] };
   res.render("registration", templateVars);
 });
-
-app.post("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
-  res.cookie("user_id", user_id, {
-    maxAge: 60000,
-    expires: new Date(Date.now() + 600000),
-    secure: true,
-    httpOnly: false,
-    sameSite: 'lax'
-  });
-  res.redirect("/urls");
-});
-
 
 app.post("/register", (req, res) => {
   console.log(req.body);
@@ -139,11 +120,42 @@ app.post("/register", (req, res) => {
   res.redirect("/urls")
 });
 
+// LOGIN ENDPOINTS
+app.get("/login", (req, res) => {
+  const user_id = req.cookies.user_id;
+  const templateVars = { user: users[user_id] };
+
+  res.render("login", templateVars);
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const user = getUserByEmail(email, users);
+
+  if (!email || !password) {
+    res.statusCode = 400;
+    res.send("Error: 400 - Bad Request. Cannot find email or password");
+    return;
+  } 
+  res.cookie("user_id", user.id, {
+    maxAge: 60000,
+    expires: new Date(Date.now() + 600000),
+    secure: true,
+    httpOnly: false,
+    sameSite: 'lax'
+  });
+  res.redirect("/urls");
+});
+
+// LOGOUT ENDPOINT
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls"); //come back to it
 });
 
+
+// OTHERS
 app.listen(PORT, () => {
   console.log(`Tinyapp listening on port ${PORT}!`);
 });
