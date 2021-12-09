@@ -52,7 +52,6 @@ app.get("/urls", (req, res) => {
   const user = users[user_id];
 
   const templateVars = { urls: urlDatabase, user: user };
-  console.log("user:", user);
   res.render("urls_index", templateVars);
 });
 
@@ -72,7 +71,6 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
-  //console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -97,13 +95,13 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
 
   if (!newEmail || !newPassword) {
     res.statusCode = 400;
-    res.send("Error: 400 - Bad Request. Cannot find email or password");
+    res.send("Error: 400 - Bad Request \nCannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
     res.statusCode = 400;
     res.send("Error: 400 - Bad Request. User already exists.");
@@ -132,19 +130,24 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = getUserByEmail(email, users);
 
-  if (!email || !password) {
-    res.statusCode = 400;
-    res.send("Error: 400 - Bad Request. Cannot find email or password");
-    return;
+  if (!email) {
+    res.statusCode = 403;
+    res.send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nEmail not found.");
+  } else {
+    if (user.password !== password) {
+      res.statusCode = 403;
+      res.send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
+    } else {
+      res.cookie("user_id", user.id, {
+        maxAge: 60000,
+        expires: new Date(Date.now() + 600000),
+        secure: true,
+        httpOnly: false,
+        sameSite: 'lax'
+      });
+      res.redirect("/urls");
+    }
   }
-  res.cookie("user_id", user.id, {
-    maxAge: 60000,
-    expires: new Date(Date.now() + 600000),
-    secure: true,
-    httpOnly: false,
-    sameSite: 'lax'
-  });
-  res.redirect("/urls");
 });
 
 // LOGOUT ENDPOINT
