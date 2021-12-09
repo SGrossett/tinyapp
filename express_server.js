@@ -77,6 +77,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 //app.get("/login")
+app.get("/login", (req, res) => {
+  user
+  res.render("login");
+});
 
 
 app.get("/register", (req, res) => {
@@ -97,20 +101,26 @@ app.post("/login", (req, res) => {
 
 
 app.post("/register", (req, res) => {
-  const { email, password } = req.body;
+  console.log(req.body);
+  const newEmail = req.body.email;
+  const newPassword = req.body.password;
 
-  const userData = { email, password };
+  user_id = generateRandomString();
+
+  users[user_id] = { 
+    id: user_id,
+    email: newEmail,
+    password: newPassword
+  }
   
-
-
+  res.cookie("user_id", user_id);
+  res.redirect("/urls")
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Tinyapp listening on port ${PORT}!`);
@@ -121,6 +131,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 
-function generateRandomString() {
+generateRandomString = () => {
   return Math.random().toString(36).substr(2, 6);
 };
+
