@@ -153,7 +153,7 @@ app.post("/login", (req, res) => {
 // LOGOUT ENDPOINT
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls"); //come back to it
+  res.redirect("/urls");
 });
 
 
