@@ -60,7 +60,7 @@ app.post("/urls", (req, res) => {
     const shortURL = generateRandomString();
     urlDatabase[shortURL] = {
       longURL,
-      userID: users[user_id]
+      userID: users[user_id].id
     };
     res.redirect(`/urls/${shortURL}`);
   } else {
@@ -81,23 +81,22 @@ app.get("/urls/new", (req, res) => {
   if (!user_id) {
     res.redirect("/login");
     return;
-  }
+  } 
+  
   const templateVars = { user: users[user_id] };
+
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.cookies.urls_id;
+  const user_id = req.cookies.user_id;
+  //const longURL = req.body.longURL;
 
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
+    longURL: urlDatabase[req.params.shortURL],
     user: users[user_id]
   };
-
-  console.log("user_id", user_id);
-  console.log('database:', urlDatabase);
-  console.log("params:", req.params);
 
   res.render("urls_show", templateVars);
 });
@@ -153,7 +152,7 @@ app.get("/login", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { user: users[user_id] };
 
-  console.log("get /login userID:", user_id);
+  //console.log("get /login userID:", user_id);
   res.render("login", templateVars);
 });
 
@@ -170,7 +169,7 @@ app.post("/login", (req, res) => {
       res.cookie("user_id", user.id);
       res.redirect("/urls");
 
-      console.log("post /login userID:", user.id);
+     // console.log("post /login userID:", user.id);
 
     }
   }
@@ -199,4 +198,4 @@ const generateRandomString = () => {
 
 const getUserByEmail = (email, database) => {
   return Object.values(database).find(user => user.email === email);
-};
+}
