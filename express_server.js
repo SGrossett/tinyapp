@@ -21,7 +21,7 @@ const urlDatabase = {
     longURL: "http://www.lighthouselabs.ca",
     userID: "aJ48lW"
   },
-  i3BoGr: {
+  "i3BoGr": {
     longURL: "https://www.google.ca",
     userID: "aJ48lW"
   }
@@ -53,12 +53,15 @@ app.get("/", (req, res) => {
 
 // /URLS ENDPONTS
 app.post("/urls", (req, res) => {
-  const user_id = res.cookies.user_id;
-
+  const user_id = req.cookies.user_id;
+  const longURL = req.body.longURL;
+  
   if (user_id) {
     const shortURL = generateRandomString();
-    const longURL = req.body.longURL;
-    urlDatabase[shortURL] = longURL;
+    urlDatabase[shortURL] = {
+      longURL,
+      userID: users[user_id]
+    };
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs.")
@@ -84,13 +87,18 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.cookies["user_id"];
 
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[user_id]
   };
+
+  console.log("user_id", user_id);
+  console.log('database:', urlDatabase);
+  console.log("params:", req.params);
+
   res.render("urls_show", templateVars);
 });
 
@@ -132,7 +140,7 @@ app.post("/register", (req, res) => {
     password: newPassword
   };
   
-  res.cookie("user_id", user_id);
+  res.cookie("post reg user_id", user_id);
   res.redirect("/urls");
 });
 
@@ -141,6 +149,7 @@ app.get("/login", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = { user: users[user_id] };
 
+  console.log("get /login userID:", user_id);
   res.render("login", templateVars);
 });
 
@@ -154,14 +163,11 @@ app.post("/login", (req, res) => {
     if (user.password !== password) {
       res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
     } else {
-      res.cookie("user_id", user.id, {
-        maxAge: 60000,
-        expires: new Date(Date.now() + 600000),
-        secure: true,
-        httpOnly: false,
-        sameSite: 'lax'
-      });
+      res.cookie("user_id", user.id);
       res.redirect("/urls");
+
+      console.log("post /login userID:", user.id);
+
     }
   }
 });
