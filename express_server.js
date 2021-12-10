@@ -104,7 +104,8 @@ app.get("/urls/:shortURL", (req, res) => {
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  if (urlDatabase[req.params.shortURL]) {
+  console.log("u:", urlDatabase[req.params.shortURL]);
+  if (urlDatabase[req.params.shortURL].userID) {
     res.redirect(longURL);
   } else {
     res.status(404).send("Error: 404 - Request page not found \nShortURL does not exist")
