@@ -64,7 +64,7 @@ app.post("/urls", (req, res) => {
     };
     res.redirect(`/urls/${shortURL}`);
   } else {
-    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs.")
+    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs")
   }
 });
 
@@ -87,7 +87,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.cookies.urls_id;
 
   const templateVars = {
     shortURL: req.params.shortURL,
@@ -105,7 +105,11 @@ app.get("/urls/:shortURL", (req, res) => {
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (urlDatabase[req.params.shortURL]) {
+    res.redirect(longURL);
+  } else {
+    res.status(404).send("Error: 404 - Request page not found \nShortURL does not exist")
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -129,7 +133,7 @@ app.post("/register", (req, res) => {
   if (!newEmail || !newPassword) {
     res.status(400).send("Error: 400 - Bad Request \nCannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
-    res.status(400).send("Error: 400 - Bad Request. User already exists.");
+    res.status(400).send("Error: 400 - Bad Request \nUser already exists");
   }
 
   user_id = generateRandomString();
