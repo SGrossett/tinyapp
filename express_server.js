@@ -44,17 +44,17 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   },
   "ez123": {
     id: "ez123",
     email: "ez@example.com",
-    password: "123hackme"
+    password: bcrypt.hashSync("123hackme", 10)
   }
 };
 
@@ -82,7 +82,7 @@ app.post("/urls", (req, res) => {
 
     res.redirect(`/urls/${shortURL}`);
   } else {
-    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs. Please log in.");
+    res.status(403).send("Error: 403 - Forbidden. Only registered users can shorten URLs. Please log in.");
   }
 });
 
@@ -119,17 +119,28 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("urls/:shortURL", (req, res) => {
+app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL].longURL = longURL;
-
-  res.redirect("/urls");
+  const user_id = req.cookies.user_id;
+  
+  if (user_id === urlDatabase[req.params.shortURL].userID) {
+    urlDatabase[shortURL].longURL = longURL;
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("Error: 401 - Authorization Required. Users can only edit their own URLs.");
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  const user_id = req.cookies.user_id;
+
+  if (user_id === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("Error: 401 - Authorization Required. Users can only delete their own URLs.");
+  }
 });
 
 
@@ -140,7 +151,7 @@ app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL].userID) {
     res.redirect(longURL);
   } else {
-    res.status(404).send("Error: 404 - Request page not found \nShortURL does not exist")
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist")
   }
 });
 
@@ -157,9 +168,9 @@ app.post("/register", (req, res) => {
   const newPassword = req.body.password;
 
   if (!newEmail || !newPassword) {
-    res.status(400).send("Error: 400 - Bad Request \nCannot find email or password");
+    res.status(400).send("Error: 400 - Bad Request. Cannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
-    res.status(400).send("Error: 400 - Bad Request \nUser already exists");
+    res.status(400).send("Error: 400 - Bad Request. User already exists");
   }
 
   user_id = generateRandomString();
@@ -170,7 +181,7 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(newPassword, 10)
   };
   
-  res.cookie("post reg user_id", user_id);
+  res.cookie("user_id", user_id);
   res.redirect("/urls");
 });
 
@@ -186,12 +197,13 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = getUserByEmail(email, users);
+  console.log(users);
 
   if (!email) {
-    res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nEmail not found.");
+    res.status(403).send("Error: 403 - Forbidden. You don't have permission to access this server. Email not found.");
   } else {
-    if (!bcrypt.compareSync(user.password, password)) {
-      res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
+    if (!bcrypt.compareSync(password, user.password)) {
+      res.status(403).send("Error: 403 - Forbidden. You don't have permission to access this server. Incorrect password.");
     } else {
       res.cookie("user_id", user.id);
       res.redirect("/urls");
