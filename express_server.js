@@ -190,7 +190,7 @@ app.post("/login", (req, res) => {
   if (!email) {
     res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nEmail not found.");
   } else {
-    if (user.password !== password) {
+    if (!bcrypt.compareSync(user.password, password)) {
       res.status(403).send("Error: 403 - Forbidden \nYou don't have permission to access this server. \nIncorrect password.");
     } else {
       res.cookie("user_id", user.id);
