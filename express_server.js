@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const bcrypt = require('bcryptjs');
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -166,7 +167,7 @@ app.post("/register", (req, res) => {
   users[user_id] = {
     id: user_id,
     email: newEmail,
-    password: newPassword
+    password: bcrypt.hashSync(newPassword, 10)
   };
   
   res.cookie("post reg user_id", user_id);
