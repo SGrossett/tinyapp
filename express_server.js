@@ -24,6 +24,18 @@ const urlDatabase = {
   "i3BoGr": {
     longURL: "https://www.google.ca",
     userID: "aJ48lW"
+  },
+  "xjyrnc": { 
+    longURL: 'http://example.com',
+    userID: 'ez123' 
+  },
+  '05lf0u': { 
+    longURL: 'http://crunchyroll.com', 
+    userID: 'ez123' 
+  },
+  corzi9: { 
+    longURL: 'http://example.com', 
+    userID: 'ez123' 
   }
 };
 
@@ -53,6 +65,9 @@ app.get("/", (req, res) => {
 
 // /URLS ENDPONTS
 app.post("/urls", (req, res) => {
+  console.log("body urls:", req.body);
+  console.log("params urls:", req.params);
+
   const user_id = req.cookies.user_id;
   const longURL = req.body.longURL;
   
@@ -62,9 +77,11 @@ app.post("/urls", (req, res) => {
       longURL,
       userID: users[user_id].id
     };
+    console.log("databse:", urlDatabase);
+
     res.redirect(`/urls/${shortURL}`);
   } else {
-    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs")
+    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs. Please log in.")
   }
 });
 
@@ -72,7 +89,7 @@ app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const user = users[user_id];
 
-  const templateVars = { urls: urlDatabase, user: user };
+  const templateVars = { urls: urlsForUser(user_id), user: user };
   res.render("urls_index", templateVars);
 });
 
@@ -80,21 +97,21 @@ app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
   if (!user_id) {
     res.redirect("/login");
-    return;
   } 
-  
-  const templateVars = { user: users[user_id] };
 
+  const templateVars = { user: users[user_id] };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  console.log("short params:", req.params);
+  console.log("short body:", req.body);
   const user_id = req.cookies.user_id;
   //const longURL = req.body.longURL;
 
   const templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[user_id]
   };
 
@@ -103,7 +120,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   console.log("u:", urlDatabase[req.params.shortURL]);
   if (urlDatabase[req.params.shortURL].userID) {
     res.redirect(longURL);
@@ -200,3 +217,14 @@ const generateRandomString = () => {
 const getUserByEmail = (email, database) => {
   return Object.values(database).find(user => user.email === email);
 }
+const urlsForUser = (id) => {
+  const urls = {};
+  for (let shortURLs in urlDatabase) {
+    if (urlDatabase[shortURLs].userID === id) {
+      urls[shortURLs] = urlDatabase[shortURLs];
+    }
+  }
+  return urls;
+}
+
+//console.log(userURLS('ez123', urlDatabase));
