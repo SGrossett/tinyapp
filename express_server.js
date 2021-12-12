@@ -2,8 +2,12 @@ const express = require("express");
 const app = express();
 const bcrypt = require('bcryptjs');
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+const cookieSession = require('cookie-session');
+app.use(cookieSession( {
+  name: "session",
+  keys: ["betYouWontGetThis"]
+}));
+
 const PORT = 8080; // default port 8080˜
 
 const bodyParser = require("body-parser");
@@ -69,7 +73,7 @@ app.post("/urls", (req, res) => {
   console.log("body urls:", req.body);
   console.log("params urls:", req.params);
 
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const longURL = req.body.longURL;
   
   if (user_id) {
@@ -87,7 +91,8 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
+  console.log("session:", user_id)
   const user = users[user_id];
 
   const templateVars = { urls: urlsForUser(user_id), user: user };
@@ -95,7 +100,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   if (!user_id) {
     res.redirect("/login");
   } 
@@ -107,7 +112,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   console.log("short params:", req.params);
   console.log("short body:", req.body);
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   //const longURL = req.body.longURL;
 
   const templateVars = {
@@ -122,7 +127,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   
   if (user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[shortURL].longURL = longURL;
@@ -133,7 +138,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
 
   if (user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -157,7 +162,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 // REGISTER ENDPOINTS
 app.get("/register", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
   res.render("registration", templateVars);
 });
@@ -173,7 +178,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("Error: 400 - Bad Request. User already exists");
   }
 
-  user_id = generateRandomString();
+  const user_id = generateRandomString();
 
   users[user_id] = {
     id: user_id,
@@ -181,13 +186,13 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(newPassword, 10)
   };
   
-  res.cookie("user_id", user_id);
-  res.redirect("/urls");
+    req.session["user_id"] = user_id;
+    res.redirect("/urls");
 });
 
 // LOGIN ENDPOINTS
 app.get("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
+  const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
 
   //console.log("get /login userID:", user_id);
@@ -205,7 +210,7 @@ app.post("/login", (req, res) => {
     if (!bcrypt.compareSync(password, user.password)) {
       res.status(403).send("Error: 403 - Forbidden. You don't have permission to access this server. Incorrect password.");
     } else {
-      res.cookie("user_id", user.id);
+      req.session["user_id"] = user.id;
       res.redirect("/urls");
 
      // console.log("post /login userID:", user.id);
