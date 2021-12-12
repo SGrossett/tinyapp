@@ -81,7 +81,7 @@ app.post("/urls", (req, res) => {
 
     res.redirect(`/urls/${shortURL}`);
   } else {
-    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs. Please log in.")
+    res.status(403).send("Error: 403 - Forbidden \nOnly registered users can shorten URLs. Please log in.");
   }
 });
 
@@ -118,6 +118,20 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL].longURL = longURL;
+
+  res.redirect("/urls");
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -128,12 +142,6 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(404).send("Error: 404 - Request page not found \nShortURL does not exist")
   }
 });
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
-});
-
 
 // REGISTER ENDPOINTS
 app.get("/register", (req, res) => {
