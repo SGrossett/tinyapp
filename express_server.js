@@ -15,12 +15,6 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-/*
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
-*/
 
 const urlDatabase = {
   "b2xVn2": {
@@ -114,7 +108,6 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log("short params:", req.params);
   console.log("short body:", req.body);
   const user_id = req.session.user_id;
-  //const longURL = req.body.longURL;
 
   const templateVars = {
     shortURL: req.params.shortURL,
@@ -148,7 +141,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.status(401).send("Error: 401 - Authorization Required. Users can only delete their own URLs.");
   }
 });
-
 
 // /U ENDPOINT
 app.get("/u/:shortURL", (req, res) => {
@@ -196,7 +188,6 @@ app.get("/login", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
 
-  //console.log("get /login userID:", user_id);
   res.render("login", templateVars);
 });
 
@@ -213,9 +204,6 @@ app.post("/login", (req, res) => {
     } else {
       req.session["user_id"] = user.id;
       res.redirect("/urls");
-
-     // console.log("post /login userID:", user.id);
-
     }
   }
 });
@@ -225,7 +213,6 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
-
 
 // OTHERS
 app.listen(PORT, () => {
