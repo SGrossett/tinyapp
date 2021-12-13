@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const bcrypt = require('bcryptjs');
 
+const { generateRandomString, getUserByEmail, urlsForUser } = require("./helpers");
 const cookieSession = require('cookie-session');
 app.use(cookieSession( {
   name: "session",
@@ -95,7 +96,7 @@ app.get("/urls", (req, res) => {
   console.log("session:", user_id)
   const user = users[user_id];
 
-  const templateVars = { urls: urlsForUser(user_id), user: user };
+  const templateVars = { urls: urlsForUser(user_id, urlDatabase), user: user };
   res.render("urls_index", templateVars);
 });
 
@@ -234,23 +235,3 @@ app.listen(PORT, () => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
-
-
-const generateRandomString = () => {
-  return Math.random().toString(36).substr(2, 6);
-};
-
-const getUserByEmail = (email, database) => {
-  return Object.values(database).find(user => user.email === email);
-}
-const urlsForUser = (id) => {
-  const urls = {};
-  for (let shortURLs in urlDatabase) {
-    if (urlDatabase[shortURLs].userID === id) {
-      urls[shortURLs] = urlDatabase[shortURLs];
-    }
-  }
-  return urls;
-}
-
-//console.log(userURLS('ez123', urlDatabase));
