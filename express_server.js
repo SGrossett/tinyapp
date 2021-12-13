@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const { generateRandomString, getUserByEmail, urlsForUser } = require("./helpers");
 const cookieSession = require('cookie-session');
-app.use(cookieSession( {
+app.use(cookieSession({
   name: "session",
   keys: ["betYouWontGetThis"]
 }));
@@ -15,7 +15,6 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -25,17 +24,17 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "aJ48lW"
   },
-  "xjyrnc": { 
+  "xjyrnc": {
     longURL: 'http://example.com',
-    userID: 'ez123' 
+    userID: 'ez123'
   },
-  '05lf0u': { 
-    longURL: 'http://crunchyroll.com', 
-    userID: 'ez123' 
+  '05lf0u': {
+    longURL: 'http://crunchyroll.com',
+    userID: 'ez123'
   },
-  corzi9: { 
-    longURL: 'http://example.com', 
-    userID: 'ez123' 
+  corzi9: {
+    longURL: 'http://twitter.com',
+    userID: 'ez123'
   }
 };
 
@@ -45,7 +44,7 @@ const users = {
     email: "user@example.com",
     password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
- "user2RandomID": {
+  "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", 10)
@@ -87,7 +86,7 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
-  console.log("session:", user_id)
+  console.log("session:", user_id);
   const user = users[user_id];
 
   const templateVars = { urls: urlsForUser(user_id, urlDatabase), user: user };
@@ -98,7 +97,7 @@ app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   if (!user_id) {
     res.redirect("/login");
-  } 
+  }
 
   const templateVars = { user: users[user_id] };
   res.render("urls_new", templateVars);
@@ -149,7 +148,7 @@ app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL].userID) {
     res.redirect(longURL);
   } else {
-    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist")
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
   }
 });
 
@@ -179,8 +178,8 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(newPassword, 10)
   };
   
-    req.session["user_id"] = user_id;
-    res.redirect("/urls");
+  req.session["user_id"] = user_id;
+  res.redirect("/urls");
 });
 
 // LOGIN ENDPOINTS
