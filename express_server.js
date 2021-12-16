@@ -12,6 +12,7 @@ app.use(cookieSession({
 const PORT = 8080; // default port 8080˜
 
 const bodyParser = require("body-parser");
+const { redirect } = require("express/lib/response");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
@@ -58,11 +59,19 @@ const users = {
 
 // ROUTE ENDPOINTS
 
+// redirects user to homepage if logged in, if not, redirects to login
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const user_id = req.session.user_id;
+  if (user_id) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 // /URLS ENDPONTS
+
+
 app.post("/urls", (req, res) => {
   console.log("body urls:", req.body);
   console.log("params urls:", req.params);
@@ -86,11 +95,14 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
-  console.log("session:", user_id);
   const user = users[user_id];
 
-  const templateVars = { urls: urlsForUser(user_id, urlDatabase), user: user };
-  res.render("urls_index", templateVars);
+  if (user_id) {
+    const templateVars = { urls: urlsForUser(user_id, urlDatabase), user: user };
+    res.render("urls_index", templateVars);
+  } else {
+    res.status(403).send("Error: 403 - Forbidden. Please log in to access this page");
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -108,13 +120,21 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log("short body:", req.body);
   const user_id = req.session.user_id;
 
-  const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[user_id]
-  };
+  if (urlDatabase[req.params.shortURL]) {
+    const templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[user_id]
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  }
 
-  res.render("urls_show", templateVars);
+
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  } 
 });
 
 app.post("/urls/:shortURL", (req, res) => {
