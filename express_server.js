@@ -9,10 +9,9 @@ app.use(cookieSession({
   keys: ["betYouWontGetThis"]
 }));
 
-const PORT = 8080; // default port 8080˜
+const PORT = 3000; // default port 8080˜
 
 const bodyParser = require("body-parser");
-const { redirect } = require("express/lib/response");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
@@ -84,7 +83,6 @@ app.post("/urls", (req, res) => {
       longURL,
       userID: users[user_id].id
     };
-
     res.redirect(`/urls/${shortURL}`);
   } else {
     res.status(403).send("Error: 403 - Forbidden. Only registered users can shorten URLs. Please log in.");
@@ -111,10 +109,10 @@ app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   if (!user_id) {
     res.redirect("/login");
+  } else {
+    const templateVars = { user: users[user_id] };
+    res.render("urls_new", templateVars);
   }
-
-  const templateVars = { user: users[user_id] };
-  res.render("urls_new", templateVars);
 });
 
 // Generate shortURL if user is logged in
@@ -133,7 +131,7 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 
-// Edits a users shortURL if credentials check out 
+// Edits a users shortURL if credentials check out
 // Returns a 401 error is shortURL doesn't belong to user
 // Returns a 404 error if shortURL doesn't exist
 // Returns a 401 error if user is not logged in
@@ -142,8 +140,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
   if (!user_id) res.status(401).send("Error: 401 - Authorization Required. Please log in to edit URL.");
-  
-  if (user_id === urlDatabase[shortURL].userID) {
+  if (!urlDatabase[shortURL]) {
+    const templateVars = { user: users[user_id] };
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  } else if (user_id === urlDatabase[shortURL].userID) {
     const templateVars = {
       shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL].longURL,
@@ -153,9 +153,6 @@ app.get("/urls/:shortURL", (req, res) => {
   } else {
     res.status(401).send("Error: 401 - Authorization Required. Users can only edit their own URLs.");
   }
-  if (!urlDatabase[shortURL]) {
-    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
-  } 
 });
 
 
@@ -168,17 +165,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
 
   if (!user_id) res.status(401).send("Error: 401 - Authorization Required. Please log in to delete URL.");
-
-  if (user_id === urlDatabase[req.params.shortURL].userID) {
+  if (!urlDatabase[shortURL]) {
+    const templateVars = { user: users[user_id] };
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  } else if (user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {
     res.status(401).send("Error: 401 - Authorization Required. Users can only delete their own URLs.");
   }
-
-  if (!urlDatabase[shortURL]) {
-    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
-  } 
 });
 
 // /U ENDPOINT
@@ -200,8 +195,13 @@ app.get("/u/:shortURL", (req, res) => {
 // If not, display register form
 app.get("/register", (req, res) => {
   const user_id = req.session.user_id;
-  const templateVars = { user: users[user_id] };
-  res.render("registration", templateVars);
+  
+  if (user_id) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = { user: users[user_id] };
+    res.render("registration", templateVars);
+  }
 });
 
 // Creates new user
@@ -215,18 +215,19 @@ app.post("/register", (req, res) => {
     res.status(400).send("Error: 400 - Bad Request. Cannot find email or password");
   } else if (getUserByEmail(newEmail, users)) {
     res.status(400).send("Error: 400 - Bad Request. User already exists");
+  } else {
+    const user_id = generateRandomString();
+
+    users[user_id] = {
+      id: user_id,
+      email: newEmail,
+      password: bcrypt.hashSync(newPassword, 10)
+    };
+    
+    req.session["user_id"] = user_id;
+    res.redirect("/urls");
   }
 
-  const user_id = generateRandomString();
-
-  users[user_id] = {
-    id: user_id,
-    email: newEmail,
-    password: bcrypt.hashSync(newPassword, 10)
-  };
-  
-  req.session["user_id"] = user_id;
-  res.redirect("/urls");
 });
 
 // LOGIN ENDPOINTS
@@ -235,11 +236,11 @@ app.post("/register", (req, res) => {
 // If not, display login form
 app.get("/login", (req, res) => {
   const user_id = req.session.user_id;
-  const templateVars = { user: users[user_id] };
 
   if (user_id) {
     res.redirect('/urls');
   } else {
+    const templateVars = { user: users[user_id] };
     res.render("login", templateVars);
   }
 });
@@ -269,11 +270,6 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
-});
-
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
 });
 
 app.listen(PORT, () => {
