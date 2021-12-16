@@ -15,46 +15,9 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
-  },
-  "i3BoGr": {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW"
-  },
-  "xjyrnc": {
-    longURL: 'http://example.com',
-    userID: 'ez123'
-  },
-  '05lf0u': {
-    longURL: 'http://crunchyroll.com',
-    userID: 'ez123'
-  },
-  corzi9: {
-    longURL: 'http://twitter.com',
-    userID: 'ez123'
-  }
-};
+const urlDatabase = {};
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: bcrypt.hashSync("dishwasher-funk", 10)
-  },
-  "ez123": {
-    id: "ez123",
-    email: "ez@example.com",
-    password: bcrypt.hashSync("123hackme", 10)
-  }
-};
+const users = {};
 
 // ROUTE ENDPOINTS
 
