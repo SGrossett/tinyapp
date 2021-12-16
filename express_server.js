@@ -59,7 +59,7 @@ const users = {
 
 // ROUTE ENDPOINTS
 
-// redirects user to homepage if logged in, if not, redirects to login
+// Redirects user to homepage if logged in. If not, redirects to login
 app.get("/", (req, res) => {
   const user_id = req.session.user_id;
   if (user_id) {
@@ -69,13 +69,12 @@ app.get("/", (req, res) => {
   }
 });
 
+
 // /URLS ENDPONTS
 
-
+// Adds URL info to user's profile
+// If user isn't logged in, send 403 error
 app.post("/urls", (req, res) => {
-  console.log("body urls:", req.body);
-  console.log("params urls:", req.params);
-
   const user_id = req.session.user_id;
   const longURL = req.body.longURL;
   
@@ -85,7 +84,6 @@ app.post("/urls", (req, res) => {
       longURL,
       userID: users[user_id].id
     };
-    console.log("databse:", urlDatabase);
 
     res.redirect(`/urls/${shortURL}`);
   } else {
@@ -93,6 +91,8 @@ app.post("/urls", (req, res) => {
   }
 });
 
+// Displays user's hompage with their URLs
+// Returns a 401 error if not logged in
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id];
@@ -101,10 +101,12 @@ app.get("/urls", (req, res) => {
     const templateVars = { urls: urlsForUser(user_id, urlDatabase), user: user };
     res.render("urls_index", templateVars);
   } else {
-    res.status(403).send("Error: 403 - Forbidden. Please log in to access this page");
+    res.status(401).send("Error: 401 - Authorization Required. Please log in to access this page");
   }
 });
 
+// Displays form to add new URL
+// If user isn't logged in, redirect to login page
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   if (!user_id) {
@@ -115,28 +117,8 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  console.log("short params:", req.params);
-  console.log("short body:", req.body);
-  const user_id = req.session.user_id;
-
-  if (urlDatabase[req.params.shortURL]) {
-    const templateVars = {
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL,
-      user: users[user_id]
-    };
-    res.render("urls_show", templateVars);
-  } else {
-    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
-  }
-
-
-  if (!urlDatabase[req.params.shortURL]) {
-    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
-  } 
-});
-
+// Generate shortURL if user is logged in
+// Returns a 401 error if not logged in
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
@@ -150,8 +132,42 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 
+
+// Edits a users shortURL if credentials check out 
+// Returns a 401 error is shortURL doesn't belong to user
+// Returns a 404 error if shortURL doesn't exist
+// Returns a 401 error if user is not logged in
+app.get("/urls/:shortURL", (req, res) => {
+  const user_id = req.session.user_id;
+  const shortURL = req.params.shortURL;
+
+  if (!user_id) res.status(401).send("Error: 401 - Authorization Required. Please log in to edit URL.");
+  
+  if (user_id === urlDatabase[shortURL].userID) {
+    const templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[user_id]
+    };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(401).send("Error: 401 - Authorization Required. Users can only edit their own URLs.");
+  }
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  } 
+});
+
+
+// Deletes a users shortURL if credentials check out 
+// Returns a 401 error is shortURL doesn't belong to user
+// Returns a 404 error if shortURL doesn't exist
+// Returns a 401 error if user is not logged in
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user_id = req.session.user_id;
+  const shortURL = req.params.shortURL;
+
+  if (!user_id) res.status(401).send("Error: 401 - Authorization Required. Please log in to delete URL.");
 
   if (user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -159,12 +175,18 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else {
     res.status(401).send("Error: 401 - Authorization Required. Users can only delete their own URLs.");
   }
+
+  if (!urlDatabase[shortURL]) {
+    res.status(404).send("Error: 404 - Request page not found. ShortURL does not exist");
+  } 
 });
 
 // /U ENDPOINT
+// Redirect to longURL if given ID exists
+// Return 404 error is not
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
-  console.log("u:", urlDatabase[req.params.shortURL]);
+
   if (urlDatabase[req.params.shortURL].userID) {
     res.redirect(longURL);
   } else {
@@ -173,14 +195,19 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 // REGISTER ENDPOINTS
+
+// Redirect to homepage if logged if
+// If not, display register form
 app.get("/register", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
   res.render("registration", templateVars);
 });
 
+// Creates new user
+// Return 404 error if email or password are missing
+// Return 400 error is email already exists
 app.post("/register", (req, res) => {
-  //console.log(req.body);
   const newEmail = req.body.email;
   const newPassword = req.body.password;
 
@@ -203,17 +230,27 @@ app.post("/register", (req, res) => {
 });
 
 // LOGIN ENDPOINTS
+
+// Redirects to /urls if logged in
+// If not, display login form
 app.get("/login", (req, res) => {
   const user_id = req.session.user_id;
   const templateVars = { user: users[user_id] };
 
-  res.render("login", templateVars);
+  if (user_id) {
+    res.redirect('/urls');
+  } else {
+    res.render("login", templateVars);
+  }
 });
 
+// Checks login credentials
+// Redirects to homepage if good
+// Returns 403 error if email not found
+// Returns 403 error for incorrect password
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = getUserByEmail(email, users);
-  console.log(users);
 
   if (!email) {
     res.status(403).send("Error: 403 - Forbidden. You don't have permission to access this server. Email not found.");
@@ -228,16 +265,17 @@ app.post("/login", (req, res) => {
 });
 
 // LOGOUT ENDPOINT
+// Logs user out and redirects them to the homepage
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
-// OTHERS
-app.listen(PORT, () => {
-  console.log(`Tinyapp listening on port ${PORT}!`);
-});
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
+});
+
+app.listen(PORT, () => {
+  console.log(`Tinyapp listening on port ${PORT}!`);
 });
